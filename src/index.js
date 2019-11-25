@@ -1,9 +1,32 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react'
-import './style'
+import React, { createContext, useContext, useEffect, useReducer, useState } from 'react'
 
-const createSuite = (suite) => {
-  const cardSuite = []
+const DeckContext = createContext()
+
+const buildDeck = (options, callback) => {
+  const { suits, wildcards } = options
+  let builtDeck = []
+
+  suits.forEach(suit => {
+    const cardSuit = createSuit(suit)
+    builtDeck = builtDeck.concat(cardSuit)
+  })
+
+  wildcards.forEach((description, index) => {
+    const wildcard = createWildcard(description, index)
+    builtDeck = builtDeck.concat(wildcard)
+  })
+
+  if (callback) {
+    builtDeck = callback(builtDeck)
+  }
+
+  return builtDeck
+}
+
+const createSuit = (suit) => {
+  const cardSuit = []
   const nameOf = {
+    1: 'Ace',
     2: 'Two',
     3: 'Three',
     4: 'Four',
@@ -16,64 +39,197 @@ const createSuite = (suite) => {
     11: 'Jack',
     12: 'Queen',
     13: 'King',
-    14: 'Ace',
   }
-  const nameOfSuite = suite.charAt(0).toUpperCase() + suite.slice(1)
-
+  const nameOfSuit = suit.charAt(0).toUpperCase() + suit.slice(1)
   for (let i = 0; i < 13; i++) {
-    const value = i + 2
-    cardSuite.push({
-      description: `${nameOf[value]} of ${nameOfSuite}`,
-      suite,
+    const value = i + 1
+    cardSuit.push({
+      description: `${nameOf[value]} of ${nameOfSuit}`,
+      id: `${suit}-${value}`,
+      suit,
       value,
     })
   }
-
-  return cardSuite
+  return cardSuit
 }
 
-const DeckContext = createContext()
+const createWildcard = (description, index) => {
+  return [{
+    description,
+    id: `wildcard-${index}`,
+    suit: 'wildcards',
+    value: 0,
+  }]
+}
+
+const shuffle = (cards) => {
+  const shuffledCards = cards
+  // the Fisher-Yates Algorithm
+  for (let i = shuffledCards.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * i)
+    const temp = shuffledCards[i]
+    shuffledCards[i] = shuffledCards[j]
+    shuffledCards[j] = temp
+  }
+  return shuffledCards
+}
+
+const initialState = {
+  deck: [],
+  collections: {
+    discard: [],
+    draw: [],
+  },
+}
+
+const reducer = (state, action) => {
+  const { deck, collections } = state
+  const drawPile = collections.draw
+
+  switch (action.type) {
+    case 'addCollection': return {
+      ...state,
+      collections: {
+        ...collections,
+        [action.collection]: [],
+      },
+    }
+
+    case 'buildDeck': return {
+      ...initialState,
+      deck: buildDeck(action.options, action.callback),
+    }
+
+    case 'drawCards':
+      const drawnCards = drawPile.splice(0, action.count)
+      return {
+        ...state,
+        collections: {
+          ...collections,
+          draw: drawPile,
+          [action.collection]: collections[action.collection].concat(drawnCards),
+        },
+      }
+
+    case 'moveCard':
+      let foundCard = false
+      for (const key in collections) {
+        if (foundCard) {
+          break
+        }
+        const index = collections[key].findIndex(card => {
+          return card.id === action.card.id
+        })
+        if (index !== -1) {
+          foundCard = collections[key].splice(index, 1)
+        }
+      }
+      if (foundCard) {
+        return {
+          ...state,
+          collections: {
+            ...collections,
+            [action.collection]: collections[action.collection].concat(action.card)
+          },
+        }
+      }
+      return {
+        ...state,
+      }
+
+    case 'recycleDiscards': return {
+      ...state,
+      collections: {
+        ...collections,
+        discard: [],
+        draw: shuffle(collections.draw.concat(collections.discard)),
+      },
+    }
+
+    case 'removeCollection':
+      const discards = collections[action.collection]
+      delete collections[action.collection]
+      return {
+        ...state,
+        collections: {
+          ...collections,
+          discard: collections.discard.concat(discards),
+        }
+      }
+
+    case 'shuffleDeck': return {
+      ...state,
+      collections: {
+        ...collections,
+        draw: shuffle([].concat(deck)),
+      },
+    }
+
+    case 'updateCollection': return {
+      ...state,
+      collections: {
+        ...collections,
+        [action.collection]: action.callback(collections[action.collection]),
+      },
+    }
+
+    default:
+      return state
+  }
+}
 
 const DeckOfCards = ({
   children,
-  suites = ['clubs', 'diamonds', 'hearts', 'spades'],
 }) => {
-  const [deck, setDeck] = useState([])
-  const [discardPile, setDiscardPile] = useState([])
-  const [drawPile, setDrawPile] = useState([])
+  const [state, dispatch] = useReducer(reducer, initialState)
+  const { deck, collections } = state
 
-  const buildDeck = () => {
-    let builtDeck = []
-    suites.forEach(suite => {
-      const cardSuite = createSuite(suite)
-      builtDeck = builtDeck.concat(cardSuite)
-    })
-    return builtDeck
-  }
+  const addCollection = (collection) => dispatch({ collection, type: 'addCollection' })
 
-  const shuffle = (cards) => {
-    const shuffledCards = cards
-    // the Fisher-Yates Algorithm
-    for (let i = shuffledCards.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * i)
-      const temp = shuffledCards[i]
-      shuffledCards[i] = shuffledCards[j]
-      shuffledCards[j] = temp
+  const buildDeck = (opts, callback) => {
+    const options = {
+      suits: ['clubs', 'diamonds', 'hearts', 'spades'],
+      wildcards: [],
+      ...opts,
     }
-    return shuffledCards
+    dispatch({ type: 'buildDeck', options, callback })
   }
 
-  const shuffleDeck = () => setDrawPile(shuffle(buildDeck()))
+  const drawCards = (collection, count = 1) => dispatch({ collection, count, type: 'drawCards' })
+
+  const moveCard = (card, collection) => dispatch({ card, collection, type: 'moveCard' })
+
+  const recycleDiscards = () => dispatch({ type: 'recycleDiscards' })
+
+  const removeCollection = (collection) => dispatch({ collection, type: 'removeCollection' })
+
+  const shuffleDeck = () => dispatch({
+    type: 'shuffleDeck',
+  })
+
+  const updateCollection = (collection, callback) => dispatch({
+    collection,
+    callback,
+    type: 'updateCollection',
+  })
 
   useEffect(() => {
-    shuffleDeck()
-  }, [])
+    if (deck.length > 0) {
+      shuffleDeck()
+    }
+  }, [deck])
 
   return (
     <DeckContext.Provider value={{
-      discardPile,
-      drawPile,
-      shuffleDeck,
+      addCollection,
+      buildDeck,
+      collections,
+      deck,
+      drawCards,
+      moveCard,
+      recycleDiscards,
+      removeCollection,
+      updateCollection,
     }}>
       {children}
     </DeckContext.Provider>
@@ -84,23 +240,136 @@ const useDeckOfCards = () => {
   return useContext(DeckContext)
 }
 
-const Component = () => {
-  const { discardPile, drawPile, shuffleDeck } = useDeckOfCards()
 
-  if (discardPile.length === 0 && drawPile.length === 0) {
-    return (
-      <p>Building deck ...</p>
-    )
+// ----
+
+
+
+
+
+
+
+
+
+
+const Component = () => {
+  const {
+    addCollection,
+    buildDeck,
+    collections,
+    deck,
+    drawCards,
+    moveCard,
+    recycleDiscards,
+    removeCollection,
+    updateCollection,
+  } = useDeckOfCards()
+
+  const [playerCounter, setPlayerCounter] = useState(0)
+  const [players, setPlayers] = useState({})
+
+  const handleAddPlayer = () => {
+    addCollection(`player-${playerCounter}`)
+    setPlayers({
+      ...players,
+      [playerCounter]: {
+        hand: `player-${playerCounter}`,
+      },
+    })
+    setPlayerCounter(playerCounter + 1)
+  }
+
+  const handleRemovePlayer = (player) => {
+    removeCollection(`player-${player}`)
+    const nextPlayers = {
+      ...players,
+    }
+    delete nextPlayers[player]
+    setPlayers(nextPlayers)
+  }
+
+  const handleDraw = (collection) => {
+    drawCards(collection)
+  }
+
+  const handleMove = (card) => {
+    moveCard(card, 'discard')
+  }
+
+  const handleUpdateCollection = (collection) => {
+    updateCollection(collection, (collection) => {
+      return collection.sort((a, b) => a.value - b.value)
+    })
+  }
+
+  useEffect(() => {
+    if (deck.length === 0) {
+      buildDeck(
+        // {
+        //   wildcards: ['Red Joker', 'Blue Joker'],
+        // },
+        // (deck) => deck.filter(card => card.suit === 'hearts')
+      )
+    }
+  }, [deck])
+
+  if (collections.draw.length === 0) {
+    return null
   }
 
   return (
     <>
-      <h1>Number of Cards: {drawPile.length}</h1>
-      <p>{drawPile[0].description}</p>
-      <p><button onClick={shuffleDeck} type="button">Shuffle</button></p>
+      <h1>Deck contains {deck.length} cards</h1>
+      <p>On top of the deck is the <strong>{collections.draw[0].description}</strong>.</p>
+      <p>
+        {collections.draw.length} remaining cards; {collections.discard.length} in discard. <button onClick={recycleDiscards} type="button">Recycle</button>
+      </p>
+
+      <div>
+        <button onClick={handleAddPlayer} type="button">Add Player</button>
+        {Object.keys(players).map(key => (
+          <div key={key}>
+            <p>
+              <strong>Player {key}</strong> <button
+                onClick={() => handleDraw(`player-${key}`)}
+                type="button">
+                  Draw
+              </button> <button
+                onClick={() => handleRemovePlayer(key)}
+                type="button"
+              >
+                Remove
+              </button> <button
+                onClick={() => handleUpdateCollection(`player-${key}`)}
+                type="button"
+                >Sort</button>
+            </p>
+            <ul>
+              {collections[players[key].hand] && collections[players[key].hand].map(card => (
+                <li key={card.id}>
+                  {card.description} <button onClick={() => handleMove(card)} type="button">X</button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+
     </>
   )
 }
+
+
+
+
+
+
+
+
+
+
+// ----
+
 
 export {
   Component,
