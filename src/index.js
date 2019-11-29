@@ -305,10 +305,16 @@ const Component = () => {
   useEffect(() => {
     if (deck.length === 0) {
       buildDeck(
-        // {
-        //   wildcards: ['Red Joker', 'Blue Joker'],
-        // },
-        // (deck) => deck.filter(card => card.suit === 'hearts')
+        {
+          // wildcards: ['Red Joker', 'Blue Joker'],
+        },
+        (deck) => deck.map(card => {
+          // Set all royalty cards' value to 10
+          if (card.value > 10) {
+            card.value = 10
+          }
+          return card
+        })
       )
     }
   }, [deck])
@@ -330,7 +336,7 @@ const Component = () => {
         {Object.keys(players).map(key => (
           <div key={key}>
             <p>
-              <strong>Player {key}</strong> <button
+              <strong>Player {key}</strong> (total: {collections[`player-${key}`] ? collections[`player-${key}`].reduce((acc, card) => acc + card.value, 0) : 0}) <button
                 onClick={() => handleDraw(`player-${key}`)}
                 type="button">
                   Draw
