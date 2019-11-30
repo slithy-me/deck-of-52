@@ -35,7 +35,7 @@ import React, { useEffect } from 'react'
 import { useDeckOfCards } from ...
 
 const Game = (props) => {
-	const {
+  const {
     addCollection,
     buildDeck,
     collections,
@@ -51,17 +51,17 @@ const Game = (props) => {
     if (deck.length === 0) {
       buildDeck()
     }
-	}, [deck])
+  }, [deck])
 
-	return (
-		<div>
-			<h1>My Card Game</h1>
-			<p>
-				Top Card:<br/>
-				{collections.draw[0].description}
-			</p>
-		</div>
-	)
+  return (
+    <div>
+      <h1>My Card Game</h1>
+      <p>
+        Top Card:<br/>
+        {collections.draw[0].description}
+      </p>
+    </div>
+  )
 }
 ```
 
@@ -95,35 +95,35 @@ Under normal circumstances, the total cards in all collections should be equal t
 
 The deck is built using the _buildDeck_ method:
 
-	buildDeck()
+  buildDeck()
 
 This method optionally accepts an options object, and a callback.
 
-	buildDeck({}, deck => deck)
+  buildDeck({}, deck => deck)
 
 Omitting these, the deck will be built using the standard suits: clubs, diamonds, hearts, spades. In verbose form, this is:
 
-	buildDeck({
-		suits: ['clubs', 'diamonds', 'hearts', 'spades'],
-	})
+  buildDeck({
+    suits: ['clubs', 'diamonds', 'hearts', 'spades'],
+  })
 
 Each suit is built to contain 13 cards, ranging in value from 1 (Ace) to 13 (King). Specifically, this:
 
 ```js
 {
-	1: 'Ace',
-	2: 'Two',
-	3: 'Three',
-	4: 'Four',
-	5: 'Five',
-	6: 'Six',
-	7: 'Seven',
-	8: 'Eight',
-	9: 'Nine',
-	10: 'Ten',
-	11: 'Jack',
-	12: 'Queen',
-	13: 'King',
+  1: 'Ace',
+  2: 'Two',
+  3: 'Three',
+  4: 'Four',
+  5: 'Five',
+  6: 'Six',
+  7: 'Seven',
+  8: 'Eight',
+  9: 'Nine',
+  10: 'Ten',
+  11: 'Jack',
+  12: 'Queen',
+  13: 'King',
 }
 ```
 
@@ -131,10 +131,10 @@ In the resulting deck, each card is an object of the following shape.
 
 ```js
 {
-	description: 'Two of Hearts',
-	id: 'hearts-2',
-	suit: 'hearts',
-	value: 2,
+  description: 'Two of Hearts',
+  id: 'hearts-2',
+  suit: 'hearts',
+  value: 2,
 }
 ```
 
@@ -142,28 +142,28 @@ As an example, you might wish to create a custom deck for a fantasy card game. L
 
 ```js
 buildDeck({
-	suits: ['earth', 'fire', 'water', 'wind'],
+  suits: ['earth', 'fire', 'water', 'wind'],
 }, (deck, options) => {
-	// Set all royalty cards' value to 10
-	const newDeck = deck.map(card => {
-		// Set all royalty cards' value to 10
-		if (card.value > 10) {
-			card.value = 10
-		}
-		return card
-	})
-	// Add a new 'Lord' royalty card for each suit
-	const newRoyalty = options.suits.map(suit => {
-		return {
-			description: `${suit.charAt(0).toUpperCase() + suit.slice(1)} Elemental`,
-			id: `${suit}-14`,
-			suit,
-			value: 11,
-		}
-	})
+  // Set all royalty cards' value to 10
+  const newDeck = deck.map(card => {
+    // Set all royalty cards' value to 10
+    if (card.value > 10) {
+      card.value = 10
+    }
+    return card
+  })
+  // Add a new 'Lord' royalty card for each suit
+  const newRoyalty = options.suits.map(suit => {
+    return {
+      description: `${suit.charAt(0).toUpperCase() + suit.slice(1)} Elemental`,
+      id: `${suit}-14`,
+      suit,
+      value: 11,
+    }
+  })
 
-	// Return the modified deck + Lord cards
-	return newDeck.concat(newRoyalty)
+  // Return the modified deck + Lord cards
+  return newDeck.concat(newRoyalty)
 })
 ```
 
@@ -176,14 +176,14 @@ And so, we have the potential to draw a "Fire Elemental" with a numeric value of
 Listed alphabetically.
 
 ### addCollection
-	addCollection( string )
+  addCollection( string )
 
 Creates a new collection, using the string as key; accessible as _collections[ string ]_.
 
 The value of the collection is an array, containing cards; on creation, the array is empty.
 
 ### buildDeck
-	buildDeck( options, callback )
+  buildDeck( options, callback )
 
 Used to initialize a new deck for play.
 
@@ -191,42 +191,42 @@ On its own -- _buildDeck()_ -- will create a standard deck of 52 cards, using th
 
 ```js
 buildDeck({
-	suits: ['clubs', 'diamonds', 'hearts', 'spades'],
-	wildcards: ['Red Joker', 'Blue Joker'],
+  suits: ['clubs', 'diamonds', 'hearts', 'spades'],
+  wildcards: ['Red Joker', 'Blue Joker'],
 }, (deck, options) => {
-	// ... do things with deck ...
-	return deck
+  // ... do things with deck ...
+  return deck
 })
 ```
 
 ### drawCards
-	drawCards( collection, count = 1 )
+  drawCards( collection, count = 1 )
 
 Moves a number of cards (_count_), into the specified _collection_. Draws a single card by default; the collection name is required.
 
 ### moveCard
-	moveCard( card, collection )
+  moveCard( card, collection )
 
 Moves a card into the designated collection. To use, pass the entire card object into the card parameter; or, at least an object with a card id.
 
 ### recycleDiscards
-	recycleDiscards()
+  recycleDiscards()
 
 Moves all cards from _discard_ back into _draw_, then shuffles the _draw_ collection.
 
 ### removeCollection
-	removeCollection( collection )
+  removeCollection( collection )
 
 Removes the named collection, and sends any cards therein to _discard_.
 
 ### updateCollection
-	updateCollection( collection, callback )
+  updateCollection( collection, callback )
 
 Runs the callback on the named collection. For example:
 
 ```js
 updateCollection(collection, (collection) => {
-	return collection.sort((a, b) => a.value - b.value)
+  return collection.sort((a, b) => a.value - b.value)
 })
 ```
 
