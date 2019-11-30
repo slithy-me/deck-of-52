@@ -17,7 +17,7 @@ const buildDeck = (options, callback) => {
   })
 
   if (callback) {
-    builtDeck = callback(builtDeck)
+    builtDeck = callback(builtDeck, options)
   }
 
   return builtDeck
@@ -129,7 +129,7 @@ const reducer = (state, action) => {
           ...state,
           collections: {
             ...collections,
-            [action.collection]: collections[action.collection].concat(action.card)
+            [action.collection]: collections[action.collection].concat(foundCard)
           },
         }
       }
@@ -296,6 +296,10 @@ const Component = () => {
     moveCard(card, 'discard')
   }
 
+  const handleMoveHand = (cards) => {
+    cards.forEach(card => moveCard(card, 'discard'))
+  }
+
   const handleUpdateCollection = (collection) => {
     updateCollection(collection, (collection) => {
       return collection.sort((a, b) => a.value - b.value)
@@ -348,7 +352,10 @@ const Component = () => {
               </button> <button
                 onClick={() => handleUpdateCollection(`player-${key}`)}
                 type="button"
-                >Sort</button>
+              >Sort</button> <button
+                onClick={() => handleMoveHand(collections[players[key].hand])}
+                type="button"
+              >Discard Hand</button>
             </p>
             <ul>
               {collections[players[key].hand] && collections[players[key].hand].map(card => (
@@ -357,6 +364,11 @@ const Component = () => {
                 </li>
               ))}
             </ul>
+            <button type="button"
+              onClick={() => moveCard({
+                id: 'hearts-4',
+              }, 'player-0')}
+            >Move 4 of Hearts</button>
           </div>
         ))}
       </div>
