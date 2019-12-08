@@ -1,7 +1,7 @@
 {
-  "name": "@slithy/npm-starter",
-  "version": "0.1.3",
-  "description": "Template repository for creating a React component NPM module.",
+  "name": "@slithy/deck-of-52",
+  "version": "1.0.0",
+  "description": "A context-based deck of 52 playing cards in React.",
   "main": "dist/index.js",
   "files": [
     "/dist"
@@ -13,7 +13,7 @@
     "start": "webpack-dev-server --mode development",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Matthew Campagna",
   "license": "ISC",
   "devDependencies": {
     "@babel/cli": "^7.5.5",

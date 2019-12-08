@@ -17,7 +17,7 @@ For example, a card may be dealt from the _draw_ pile, into a player's _hand_. L
 To get started, wrap your application, or just the game logic, in the **DeckOfCards** context.
 
 ```js
-import { DeckOfCards } from ...
+import { DeckOfCards } from '@slithy/deck-of-52'
 
 const App = () => (
   <DeckOfCards>
@@ -32,7 +32,7 @@ To kick the game off, interact with the the _draw_ collection.
 
 ```js
 import React, { useEffect } from 'react'
-import { useDeckOfCards } from ...
+import { useDeckOfCards } from '@slithy/deck-of-52'
 
 const Game = (props) => {
   const {
