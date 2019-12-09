@@ -1,6 +1,6 @@
 {
   "name": "@slithy/deck-of-52",
-  "version": "1.0.2",
+  "version": "1.0.1",
   "description": "A context-based deck of 52 playing cards in React.",
   "main": "dist/index.js",
   "files": [

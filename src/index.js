@@ -1,14 +1,6 @@
 import React, { createContext, useContext, useEffect, useReducer, useState } from 'react'
 
-const initialState = {
-  deck: [],
-  collections: {
-    discard: [],
-    draw: [],
-  },
-}
-
-const DeckContext = createContext({ state: initialState })
+const DeckContext = createContext()
 
 const buildDeck = (options, callback) => {
   const { suits, wildcards } = options
@@ -80,6 +72,14 @@ const shuffle = (cards) => {
     shuffledCards[j] = temp
   }
   return shuffledCards
+}
+
+const initialState = {
+  deck: [],
+  collections: {
+    discard: [],
+    draw: [],
+  },
 }
 
 const reducer = (state, action) => {
