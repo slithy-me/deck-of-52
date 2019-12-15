@@ -157,6 +157,13 @@ const reducer = (state, action) => {
         }
       }
 
+    case 'setCollections': return {
+      ...state,
+      collections: {
+        ...action.collections,
+      },
+    }
+
     case 'shuffleDeck': return {
       ...state,
       collections: {
@@ -203,6 +210,8 @@ const DeckOfCards = ({
 
   const removeCollection = (collection) => dispatch({ collection, type: 'removeCollection' })
 
+  const setCollections = collections => dispatch({ collections, type: 'setCollections' })
+
   const shuffleDeck = () => dispatch({
     type: 'shuffleDeck',
   })
@@ -229,6 +238,7 @@ const DeckOfCards = ({
       moveCard,
       recycleDiscards,
       removeCollection,
+      setCollections,
       updateCollection,
     }}>
       {children}

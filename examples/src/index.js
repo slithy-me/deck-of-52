@@ -12,25 +12,27 @@ const Component = () => {
     moveCard,
     recycleDiscards,
     removeCollection,
+    setCollections,
     updateCollection,
-  } = useDeckOfCards()
+} = useDeckOfCards()
 
   const [playerCounter, setPlayerCounter] = useState(0)
   const [players, setPlayers] = useState({})
+  const [store, setStore] = useState(null)
 
   const handleAddPlayer = () => {
     addCollection(`player-${playerCounter}`)
     setPlayers({
       ...players,
-      [playerCounter]: {
-        hand: `player-${playerCounter}`,
+      [`player-${playerCounter}`]: {
+        name: `Player ${playerCounter}`,
       },
     })
     setPlayerCounter(playerCounter + 1)
   }
 
   const handleRemovePlayer = (player) => {
-    removeCollection(`player-${player}`)
+    removeCollection(player)
     const nextPlayers = {
       ...players,
     }
@@ -43,6 +45,7 @@ const Component = () => {
   }
 
   const handleMove = (card) => {
+    console.log(card)
     moveCard(card, 'discard')
   }
 
@@ -54,6 +57,21 @@ const Component = () => {
     updateCollection(collection, (collection) => {
       return collection.sort((a, b) => a.value - b.value)
     })
+  }
+
+  const saveState = () => {
+    setStore(JSON.stringify({
+      collections,
+      playerCounter,
+      players,
+    }))
+  }
+
+  const loadState = () => {
+    const data = JSON.parse(store)
+    setPlayerCounter(data.playerCounter)
+    setPlayers(data.players)
+    setCollections(data.collections)
   }
 
   useEffect(() => {
@@ -87,28 +105,39 @@ const Component = () => {
 
       <div>
         <button onClick={handleAddPlayer} type="button">Add Player</button>
-        {Object.keys(players).map(key => (
+
+        {Object.keys(collections).filter((key => key.includes('player'))).map(key => (
           <div key={key}>
             <p>
-              <strong>Player {key}</strong> (total: {collections[`player-${key}`] ? collections[`player-${key}`].reduce((acc, card) => acc + card.value, 0) : 0}) <button
-                onClick={() => handleDraw(`player-${key}`)}
-                type="button">
-                  Draw
-              </button> <button
+              <strong>{players[key].name}</strong>
+              <span> (total: {collections[key] ? collections[key].reduce((acc, card) => acc + card.value, 0) : 0}) </span>
+              <button
+                onClick={() => handleDraw(key)}
+                type="button"
+              >
+                Draw
+              </button>
+              <button
                 onClick={() => handleRemovePlayer(key)}
                 type="button"
               >
                 Remove
-              </button> <button
-                onClick={() => handleUpdateCollection(`player-${key}`)}
+              </button>
+              <button
+                onClick={() => handleUpdateCollection(key)}
                 type="button"
-              >Sort</button> <button
-                onClick={() => handleMoveHand(collections[players[key].hand])}
+              >
+                Sort
+              </button>
+              <button
+                onClick={() => handleMoveHand(collections[key])}
                 type="button"
-              >Discard Hand</button>
+              >
+                Discard Hand
+              </button>
             </p>
             <ul>
-              {collections[players[key].hand] && collections[players[key].hand].map(card => (
+              {collections[key].map(card => (
                 <li key={card.id}>
                   {card.description} <button onClick={() => handleMove(card)} type="button">X</button>
                 </li>
@@ -117,12 +146,20 @@ const Component = () => {
             <button type="button"
               onClick={() => moveCard({
                 id: 'hearts-4',
-              }, 'player-0')}
-            >Move 4 of Hearts</button>
+              }, key)}
+            >
+              Move 4 of Hearts
+            </button>
           </div>
         ))}
       </div>
 
+      <div
+        style={{ marginTop: 24 }}
+      >
+        <button onClick={saveState} type="button">Save State</button>
+        <button onClick={loadState} type="button">Load State</button>
+      </div>
     </>
   )
 }

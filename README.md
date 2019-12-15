@@ -219,6 +219,11 @@ Moves all cards from _discard_ back into _draw_, then shuffles the _draw_ collec
 
 Removes the named collection, and sends any cards therein to _discard_.
 
+### setCollections
+  setCollections( collections )
+
+Sets collections for the deck. For example, use this to restore collections to a previously saved state.
+
 ### updateCollection
   updateCollection( collection, callback )
 
