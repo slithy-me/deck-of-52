@@ -45,7 +45,6 @@ const Component = () => {
   }
 
   const handleMove = (card) => {
-    console.log(card)
     moveCard(card, 'discard')
   }
 

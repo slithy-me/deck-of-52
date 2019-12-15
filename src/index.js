@@ -191,32 +191,32 @@ const DeckOfCards = ({
   const [state, dispatch] = useReducer(reducer, initialState)
   const { deck, collections } = state
 
-  const addCollection = (collection) => dispatch({ collection, type: 'addCollection' })
+  const addCollection = async (collection) => await dispatch({ collection, type: 'addCollection' })
 
-  const buildDeck = (opts, callback) => {
+  const buildDeck = async (opts, callback) => {
     const options = {
       suits: ['clubs', 'diamonds', 'hearts', 'spades'],
       wildcards: [],
       ...opts,
     }
-    dispatch({ type: 'buildDeck', options, callback })
+    return await dispatch({ type: 'buildDeck', options, callback })
   }
 
-  const drawCards = (collection, count = 1) => dispatch({ collection, count, type: 'drawCards' })
+  const drawCards = async (collection, count = 1) => await dispatch({ collection, count, type: 'drawCards' })
 
-  const moveCard = (card, collection) => dispatch({ card, collection, type: 'moveCard' })
+  const moveCard = async (card, collection) => await dispatch({ card, collection, type: 'moveCard' })
 
-  const recycleDiscards = () => dispatch({ type: 'recycleDiscards' })
+  const recycleDiscards = async () => await dispatch({ type: 'recycleDiscards' })
 
-  const removeCollection = (collection) => dispatch({ collection, type: 'removeCollection' })
+  const removeCollection = async (collection) => await dispatch({ collection, type: 'removeCollection' })
 
-  const setCollections = collections => dispatch({ collections, type: 'setCollections' })
+  const setCollections = async (collections) => await dispatch({ collections, type: 'setCollections' })
 
-  const shuffleDeck = () => dispatch({
+  const shuffleDeck = async () => await dispatch({
     type: 'shuffleDeck',
   })
 
-  const updateCollection = (collection, callback) => dispatch({
+  const updateCollection = async (collection, callback) => await dispatch({
     collection,
     callback,
     type: 'updateCollection',
